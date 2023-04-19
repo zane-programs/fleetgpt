@@ -47,7 +47,7 @@ function ChatRow({
       p="6"
       display={isHidden ? "none" : undefined}
     >
-      <Box>
+      <Box mt="2" mb="3">
         <Avatar
           size="2xl"
           src={

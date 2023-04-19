@@ -26,11 +26,6 @@ export default function Home() {
     }
   }, [adminClicks, setRoute]);
 
-  // Clear audience prompt on fresh load
-  useEffect(() => {
-    localStorage.setItem("audiencePrompt", '""');
-  });
-
   return (
     <Flex
       alignItems="center"

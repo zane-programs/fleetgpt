@@ -29,11 +29,13 @@ export default function App() {
     "showingOverlay",
     true
   );
-
-  // Preload images
   useEffect(() => {
+    // Preload images
     preloadImage("deandre.jpg");
     preloadImage("bowtie.svg");
+
+    // Clear audience prompt on fresh load
+    localStorage.setItem("audiencePrompt", '""');
   }, []);
 
   const adminViewOverride = useCallback(
