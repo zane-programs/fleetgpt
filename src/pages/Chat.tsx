@@ -11,11 +11,8 @@ export default function Chat() {
     const timeout = setTimeout(
       () =>
         setWelcomeText(
-          // "Hello! I'm FleetGPT, Stanford's all-original, all-comedy a cappella bot! Fleet Street's computer science majors spent the past three weeks building me instead of taking showers and socializing with...friends.\nSo as you might expect, I write a pretty mean skit, as far as Fleet Street standards go. Even my worst work is better than half of the stuff the group comes up with (see: Bitsmas).\nGot any ideas for a skit? If you can't think of one, may I suggest asking the audience?"
           `Heya! I'm FleetGPT, Stanford's one and only all-original, all-comedy a cappella bot! The Fleet Street computer whizzes cooked me up during a three-week-long, shower-free, anti-social coding marathon. Shampoo? Nah, who needs it when you've got me?
-
           As you can imagine, I churn out skits that'll have you in stitches – way beyond your average Fleet Street fare. I mean, seriously. Even my most cringe-worthy creations outshine half of what the group dreams up (cough, Bitsmas, cough).
-          
           Got a hankering for a side-splitting skit? If you're drawing a blank, fear not! Let's tap into the collective comedic genius of our lovely audience, shall we?`
         ),
       1500
