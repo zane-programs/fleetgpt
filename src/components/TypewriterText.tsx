@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "./TypewriterText.module.css";
 import { useSfx } from "../utils/sfx";
+import { sleep } from "../utils/misc";
 
 enum TypewriterState {
   RESTING = 1,
@@ -12,8 +13,8 @@ enum TypewriterState {
 
 export default function TypewriterText({
   text,
-  typingDelay = 28,
-  backspacingDelay = 20,
+  typingDelay = 24,
+  backspacingDelay = 16,
 }: {
   text: string;
   typingDelay?: number;
@@ -95,12 +96,21 @@ export default function TypewriterText({
   );
 }
 
-function Cursor({
+const BLINK_STYLES: { [key in "gpt" | "normal"]: string } = {
+  gpt: styles.blinkingGPT,
+  normal: styles.blinkingNormal,
+};
+
+export function Cursor({
   state,
   opacity,
+  cursor = "▋",
+  blinkStyle = "gpt",
 }: {
-  state: TypewriterState;
+  state?: TypewriterState;
   opacity?: string | number;
+  cursor?: string;
+  blinkStyle?: "gpt" | "normal";
 }) {
   return (
     <span
@@ -109,15 +119,13 @@ function Cursor({
       }}
     >
       <span
-        className={styles.blinking}
+        className={BLINK_STYLES[blinkStyle]}
         style={{
           userSelect: "none",
         }}
       >
-        ▋
+        {cursor}
       </span>
     </span>
   );
 }
-
-const sleep = (t: number) => new Promise((r) => setTimeout(r, t));

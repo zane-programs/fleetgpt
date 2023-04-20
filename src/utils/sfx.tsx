@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 export function SFXProvider({
   isEnabled,
@@ -10,10 +17,6 @@ export function SFXProvider({
     new Audio(process.env.PUBLIC_URL + "/sfx/typing.mp3")
   );
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    typingAudioRef.current.loop = true;
-  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -36,6 +39,30 @@ export function SFXProvider({
     };
   }, [isEnabled]);
 
+  const playBeep = useCallback(() => {
+    isEnabled && _playSound("beep.mp3");
+  }, [isEnabled]);
+
+  const speakText = useCallback(
+    (sentence: string): Promise<SpeechSynthesisEvent | void> => {
+      return new Promise((resolve) => {
+        // Prevent speech when disabled
+        if (!isEnabled) resolve();
+
+        let audio = new SpeechSynthesisUtterance(sentence);
+        audio.voice =
+          (
+            (window as any).SPEECH_SYNTHESIS_VOICES as SpeechSynthesisVoice[]
+          ).find(({ name, lang }) => name === "Daniel" && lang === "en-GB") ??
+          null;
+        window.speechSynthesis.speak(audio);
+
+        audio.onend = resolve;
+      });
+    },
+    [isEnabled]
+  );
+
   useEffect(() => {
     if (isPlayingTyping) {
       // Restart and play adio
@@ -53,7 +80,7 @@ export function SFXProvider({
 
   return (
     <SFXProviderContext.Provider
-      value={{ isPlayingTyping, setIsPlayingTyping }}
+      value={{ isPlayingTyping, setIsPlayingTyping, playBeep, speakText }}
     >
       <div ref={containerRef}>{children}</div>
     </SFXProviderContext.Provider>
@@ -61,8 +88,12 @@ export function SFXProvider({
 }
 
 export function playClick(): Promise<void> {
+  return _playSound("click.mp3");
+}
+
+function _playSound(fileName: string): Promise<void> {
   return new Promise((resolve) => {
-    const audio = new Audio(process.env.PUBLIC_URL + "/sfx/click.mp3");
+    const audio = new Audio(process.env.PUBLIC_URL + "/sfx/" + fileName);
     audio.addEventListener("ended", function () {
       this.remove();
       resolve();
@@ -78,6 +109,8 @@ export function useSfx(): ISFXProviderContext {
 interface ISFXProviderContext {
   isPlayingTyping: boolean;
   setIsPlayingTyping: React.Dispatch<React.SetStateAction<boolean>>;
+  playBeep: () => void;
+  speakText: (sentence: string) => void;
 }
 
 const SFXProviderContext = createContext<ISFXProviderContext>(

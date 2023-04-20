@@ -24,7 +24,7 @@ export function useApp(): IAppContext {
 export default function App() {
   const { route } = useRouter();
 
-  const [sfxEnabled, setSfxEnabled] = useLocalStorage("sfxEnabled", false);
+  const [sfxEnabled, setSfxEnabled] = useLocalStorage("sfxEnabled", true);
   const [showingOverlay, setShowingOverlay] = useLocalStorage(
     "showingOverlay",
     true
@@ -33,9 +33,6 @@ export default function App() {
     // Preload images
     preloadImage("deandre.jpg");
     preloadImage("bowtie.svg");
-
-    // Clear audience prompt on fresh load
-    localStorage.setItem("audiencePrompt", '""');
   }, []);
 
   const adminViewOverride = useCallback(

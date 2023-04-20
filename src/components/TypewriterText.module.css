@@ -1,11 +1,4 @@
-.blinking {
-  animation-name: blink;
-  animation-duration: 0.7s;
-  animation-iteration-count: infinite;
-  animation-timing-function: step-end;
-}
-
-@keyframes blink {
+@keyframes blinkGPT {
   0% {
     opacity: 1;
   }
@@ -17,4 +10,32 @@
   100% {
     opacity: 1;
   }
+}
+
+@keyframes blinkNormal {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.blinkingGPT {
+  animation-name: blinkGPT;
+  animation-duration: 0.7s;
+  animation-iteration-count: infinite;
+  animation-timing-function: step-end;
+}
+
+.blinkingNormal {
+  animation-name: blinkNormal;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+  animation-timing-function: step-end;
 }

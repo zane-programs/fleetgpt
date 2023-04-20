@@ -2,6 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <script>
+      // Show overlay on fresh load (must capture user interaction)
+      localStorage.setItem("showingOverlay", "true");
+      // Clear audience prompt on fresh load
+      localStorage.setItem("audiencePrompt", '""');
+      localStorage.setItem("isGenerating", "false");
+      localStorage.setItem("scriptIsReady", "false");
+
+      window.SPEECH_SYNTHESIS_VOICES = [];
+      window.addEventListener("click", function () {
+        if ("speechSynthesis" in window) {
+          window.SPEECH_SYNTHESIS_VOICES = window.speechSynthesis.getVoices();
+          console.log("click", SPEECH_SYNTHESIS_VOICES);
+        }
+      });
+    </script>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
