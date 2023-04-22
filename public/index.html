@@ -5,7 +5,7 @@
     <script>
       // Show overlay on fresh load (must capture user interaction)
       localStorage.setItem("showingOverlay", "true");
-      // Clear audience prompt on fresh load
+      // Clear audience prompt & others on fresh load
       localStorage.setItem("audiencePrompt", '""');
       localStorage.setItem("isGenerating", "false");
       localStorage.setItem("scriptIsReady", "false");
@@ -14,7 +14,6 @@
       window.addEventListener("click", function () {
         if ("speechSynthesis" in window) {
           window.SPEECH_SYNTHESIS_VOICES = window.speechSynthesis.getVoices();
-          console.log("click", SPEECH_SYNTHESIS_VOICES);
         }
       });
     </script>

@@ -17,6 +17,7 @@ export default function YTOverlay({
       left="0"
       background="black"
       style={{ width, height }}
+      zIndex="9991"
     >
       <ReactPlayer
         url={url}

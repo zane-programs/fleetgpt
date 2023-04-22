@@ -10,12 +10,14 @@ import { Route, useRouter } from "../Router";
 import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { useApp } from "../App";
 import { useLocalStorage } from "../utils/storage";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { generateScript } from "../utils/api";
+import { usePointer } from "../components/PointerProvider";
 
 export default function Admin() {
   const { sfx, overlay } = useApp();
   const { setRoute } = useRouter();
+  const { setEnabled: setPointerEnabled } = usePointer();
   const [audiencePrompt, setAudiencePrompt] = useLocalStorage(
     "audiencePrompt",
     ""
@@ -34,6 +36,13 @@ export default function Admin() {
     await generateScript(audiencePrompt);
     setScriptIsReady(true);
   }, [audiencePrompt, setIsGenerating, setScriptIsReady]);
+
+  useEffect(() => {
+    setPointerEnabled(false);
+    return () => {
+      setPointerEnabled(true);
+    };
+  }, [setPointerEnabled]);
 
   return (
     <Box p="4">

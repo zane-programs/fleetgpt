@@ -4,6 +4,7 @@ import { useLocalStorage, LocalStorageSetter } from "./utils/storage";
 import { Box, BoxProps } from "@chakra-ui/react";
 import { useWindowDimensions } from "./utils/dimensions";
 import { SFXProvider } from "./utils/sfx";
+import PointerProvider, { usePointer } from "./components/PointerProvider";
 
 interface IAppContext {
   sfx: {
@@ -48,15 +49,37 @@ export default function App() {
       }}
     >
       <SFXProvider isEnabled={adminViewOverride(sfxEnabled)}>
-        <Box userSelect="none">
-          <Outlet />
-        </Box>
+        <PointerProvider>
+          <AppInner />
+        </PointerProvider>
       </SFXProvider>
       <BlackOverlay
         isVisible={adminViewOverride(showingOverlay)}
         onDoubleClick={() => document.documentElement.requestFullscreen()}
       />
     </AppContext.Provider>
+  );
+}
+
+function AppInner() {
+  const { route } = useRouter();
+  const { setEnabled: setPointerEnabled } = usePointer();
+  const {
+    overlay: { showing: showingOverlay },
+  } = useApp();
+
+  useEffect(() => {
+    if (route === Route.CHAT) {
+      setPointerEnabled(false);
+    } else if (route !== Route.ADMIN) {
+      setPointerEnabled(!showingOverlay);
+    }
+  }, [route, setPointerEnabled, showingOverlay]);
+
+  return (
+    <Box userSelect="none">
+      <Outlet />
+    </Box>
   );
 }
 

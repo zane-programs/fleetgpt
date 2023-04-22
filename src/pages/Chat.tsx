@@ -3,15 +3,16 @@ import TypewriterText, { Cursor } from "../components/TypewriterText";
 import { useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "../utils/storage";
 import YTOverlay from "../components/YTOverlay";
-import { useSfx } from "../utils/sfx";
+import { Sound, useSfx } from "../utils/sfx";
 import { sleep } from "../utils/misc";
+import ScriptReady from "./ScriptReady";
 
 const STALLING_TEXT = [
   "Generating…",
   "Still generating…",
   "Ah, shit. This is going to take a while.",
   "This is what happens when you skip CS lectures.",
-  "Do something! Your tiny audience is going to leave.",
+  "If you don't do something, your tiny audience is going to leave.",
   'You know what? I\'m just gonna show them a video skit you "people" made.',
   "Enjoy the show, folks! Heh heh.",
   "Loading video…",
@@ -51,8 +52,8 @@ export default function Chat() {
 
   return (
     <>
-      {scriptIsReady ? (
-        <>FINISHED!!!</>
+      {!isShowingVideo && scriptIsReady ? (
+        <ScriptReady />
       ) : (
         <Box>
           <ChatRow>
@@ -60,7 +61,7 @@ export default function Chat() {
           </ChatRow>
           <ChatRow isHuman isHidden={!audiencePrompt}>
             {audiencePromptLines.map((line, index) => (
-              <Text key={line}>
+              <Text key={index + "_" + line}>
                 {line}
                 {!isGenerating && index + 1 === audiencePromptLines.length && (
                   <Cursor opacity={1} cursor="|" blinkStyle="normal" />
@@ -75,8 +76,9 @@ export default function Chat() {
       )}
       {isShowingVideo && (
         <YTOverlay
-          url="https://www.youtube.com/watch?v=34ZMVARbuU4"
-          // url="https://www.youtube.com/watch?v=Vj4Y1c-DSM0"
+          url="https://www.youtube.com/watch?v=rN--BCpU-78" /* the group is too big. */
+          // url="https://www.youtube.com/watch?v=34ZMVARbuU4" /* dorm alone 2 trailer */
+          // url="https://www.youtube.com/watch?v=Vj4Y1c-DSM0" /* 15 sec video filler */
           onEnded={() => setIsShowingVideo(false)}
         />
       )}
@@ -91,24 +93,7 @@ function StallingChatRow({
 }) {
   const [stallingTextIndex, setStallingTextIndex] = useState(0);
 
-  const { playBeep, speakText } = useSfx();
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setStallingTextIndex((prev) => {
-  //       if (prev + 1 < STALLING_TEXT.length) {
-  //         return prev + 1;
-  //       } else {
-  //         clearInterval(interval);
-  //         return -1;
-  //       }
-  //     });
-  //   }, 5000);
-
-  //   return () => {
-  //     clearInterval(interval);
-  //   };
-  // }, []);
+  const { playSound, speakText } = useSfx();
 
   useEffect(() => {
     async function doStalling() {
@@ -122,13 +107,14 @@ function StallingChatRow({
         }
       }
     }
+
     doStalling();
   }, [speakText]);
 
   useEffect(() => {
-    playBeep();
+    playSound(Sound.BEEP);
     setIsShowingVideo(stallingTextIndex === -1);
-  }, [playBeep, setIsShowingVideo, stallingTextIndex]);
+  }, [playSound, setIsShowingVideo, stallingTextIndex]);
 
   return (
     <ChatRow>
