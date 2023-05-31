@@ -3,10 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <script>
+      // TODO: fix this gross clearing (maybe just exclude Chakra config? I'll think about it)
       // Show overlay on fresh load (must capture user interaction)
       localStorage.setItem("showingOverlay", "true");
       // Clear audience prompt & others on fresh load
       localStorage.setItem("audiencePrompt", '""');
+      localStorage.setItem("promptPerson", '""');
+      localStorage.setItem("promptPlace", '""');
+      localStorage.setItem("promptThing", '""');
       localStorage.setItem("isGenerating", "false");
       localStorage.setItem("scriptIsReady", "false");
 
@@ -17,6 +21,11 @@
         }
       });
     </script>
+    <style>
+      body::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />

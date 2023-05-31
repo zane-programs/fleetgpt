@@ -1,10 +1,17 @@
-import { createContext, useCallback, useContext, useEffect } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import { Outlet, Route, useRouter } from "./Router";
 import { useLocalStorage, LocalStorageSetter } from "./utils/storage";
 import { Box, BoxProps } from "@chakra-ui/react";
 import { useWindowDimensions } from "./utils/dimensions";
 import { SFXProvider } from "./utils/sfx";
 import PointerProvider, { usePointer } from "./components/PointerProvider";
+import { SocketProvider } from "./utils/api";
 
 interface IAppContext {
   sfx: {
@@ -14,6 +21,9 @@ interface IAppContext {
   overlay: {
     showing: boolean;
     setShowing: LocalStorageSetter<boolean>;
+  };
+  scroll: {
+    toBottom: (smooth?: boolean) => void;
   };
 }
 const AppContext = createContext<IAppContext>({} as IAppContext);
@@ -41,22 +51,32 @@ export default function App() {
     [route]
   );
 
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback((smooth: boolean = true) => {
+    bottomRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
         sfx: { enabled: sfxEnabled, setEnabled: setSfxEnabled },
         overlay: { showing: showingOverlay, setShowing: setShowingOverlay },
+        scroll: { toBottom: scrollToBottom },
       }}
     >
-      <SFXProvider isEnabled={adminViewOverride(sfxEnabled)}>
-        <PointerProvider>
-          <AppInner />
-        </PointerProvider>
-      </SFXProvider>
-      <BlackOverlay
-        isVisible={adminViewOverride(showingOverlay)}
-        onDoubleClick={() => document.documentElement.requestFullscreen()}
-      />
+      <SocketProvider>
+        <SFXProvider isEnabled={adminViewOverride(sfxEnabled)}>
+          <PointerProvider>
+            <AppInner />
+            <div ref={bottomRef} />
+          </PointerProvider>
+        </SFXProvider>
+        <BlackOverlay
+          isVisible={adminViewOverride(showingOverlay)}
+          onDoubleClick={() => document.documentElement.requestFullscreen()}
+        />
+      </SocketProvider>
     </AppContext.Provider>
   );
 }
@@ -91,7 +111,7 @@ function BlackOverlay({ isVisible, ...props }: IBlackOverlayProps) {
   const { width, height } = useWindowDimensions();
   return (
     <Box
-      position="absolute"
+      position="fixed"
       top={0}
       left={0}
       width={width}

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { speakTextOnServer } from "./api";
 
 export enum Sound {
   BEEP = "beep.mp3",
@@ -53,30 +54,38 @@ export function SFXProvider({
     [isEnabled]
   );
 
+  // const speakText = useCallback(
+  //   (sentence: string): Promise<SpeechSynthesisEvent | void> => {
+  //     return new Promise((resolve) => {
+  //       // Prevent speech when disabled
+  //       if (!isEnabled) resolve();
+
+  //       let audio = new SpeechSynthesisUtterance(sentence);
+  //       audio.volume = 0.55;
+  //       audio.voice =
+  //         (
+  //           (window as any).SPEECH_SYNTHESIS_VOICES as SpeechSynthesisVoice[]
+  //         ).find(({ name, lang }) => name === "Daniel" && lang === "en-GB") ??
+  //         null;
+  //       window.speechSynthesis.speak(audio);
+
+  //       audio.onend = resolve;
+  //     });
+  //   },
+  //   [isEnabled]
+  // );
+
   const speakText = useCallback(
-    (sentence: string): Promise<SpeechSynthesisEvent | void> => {
-      return new Promise((resolve) => {
-        // Prevent speech when disabled
-        if (!isEnabled) resolve();
-
-        let audio = new SpeechSynthesisUtterance(sentence);
-        audio.volume = 0.55;
-        audio.voice =
-          (
-            (window as any).SPEECH_SYNTHESIS_VOICES as SpeechSynthesisVoice[]
-          ).find(({ name, lang }) => name === "Daniel" && lang === "en-GB") ??
-          null;
-        window.speechSynthesis.speak(audio);
-
-        audio.onend = resolve;
-      });
+    async (sentence: string, voice?: string, speed?: number): Promise<void> => {
+      isEnabled &&
+        (await speakTextOnServer("[[volm 0.55]] " + sentence, voice, speed));
     },
     [isEnabled]
   );
 
   useEffect(() => {
     typingAudioRef.current.volume = 0.3;
-    if (isPlayingTyping) {
+    if (isPlayingTyping && isEnabled) {
       // Restart and play adio
       typingAudioRef.current.currentTime = 0;
       typingAudioRef.current.play();
@@ -84,7 +93,7 @@ export function SFXProvider({
       // Stop playing audio
       typingAudioRef.current.pause();
     }
-  }, [isPlayingTyping]);
+  }, [isPlayingTyping, isEnabled]);
 
   useEffect(() => {
     typingAudioRef.current.volume = isEnabled ? 1 : 0;
@@ -123,7 +132,7 @@ interface ISFXProviderContext {
   isPlayingTyping: boolean;
   setIsPlayingTyping: React.Dispatch<React.SetStateAction<boolean>>;
   playSound: (sound: Sound, volume?: number) => void;
-  speakText: (sentence: string) => void;
+  speakText: (sentence: string) => Promise<void>;
 }
 
 const SFXProviderContext = createContext<ISFXProviderContext>(

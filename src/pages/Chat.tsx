@@ -2,36 +2,65 @@ import { Avatar, Box, Flex, Spinner, Text } from "@chakra-ui/react";
 import TypewriterText, { Cursor } from "../components/TypewriterText";
 import { useEffect, useMemo, useState } from "react";
 import { useLocalStorage } from "../utils/storage";
-import YTOverlay from "../components/YTOverlay";
 import { Sound, useSfx } from "../utils/sfx";
 import { sleep } from "../utils/misc";
 import ScriptReady from "./ScriptReady";
+import { useApp } from "../App";
+import { useSocket } from "../utils/api";
+
+import styles from "./Chat.module.css";
 
 const STALLING_TEXT = [
   "Generating…",
   "Still generating…",
   "Ah, shit. This is going to take a while.",
   "This is what happens when you skip CS lectures.",
-  "If you don't do something, your tiny audience is going to leave.",
-  'You know what? I\'m just gonna show them a video skit you "people" made.',
+  "Your tiny audience is going to leave, and it'll be your fault, not mine.",
+  "Oh, never mind! Let me cook.",
   "Enjoy the show, folks! Heh heh.",
-  "Loading video…",
+  "Loading skit…",
 ];
 
 export default function Chat() {
+  const { scroll } = useApp();
+  const { finalString } = useSocket();
+
   const [welcomeText, setWelcomeText] = useState("");
-  const [audiencePrompt] = useLocalStorage("audiencePrompt", "");
+
+  const [promptPerson] = useLocalStorage("promptPerson", "");
+  const [promptPlace] = useLocalStorage("promptPlace", "");
+  const [promptThing] = useLocalStorage("promptThing", "");
+
   const [isGenerating] = useLocalStorage("isGenerating", false);
   const [scriptIsReady] = useLocalStorage("scriptIsReady", false);
-  const [isShowingVideo, setIsShowingVideo] = useState(false);
+  const [isShowingChatMessages, setIsShowingChatMessages] = useState(false);
+
+  const shouldShowPromptPlace = useMemo(
+    () => promptPerson.split("\n").length > 1,
+    [promptPerson]
+  );
+  const shouldShowPromptThing = useMemo(
+    () => promptPlace.split("\n").length > 1,
+    [promptPlace]
+  );
+
+  // Scroll to bottom of page when necessary
+  useEffect(() => {
+    scroll.toBottom();
+  }, [scroll, promptPerson, promptPlace, promptThing, isGenerating]);
+
+  // Auto scroll to bottom of page (not smoothly) on chat update
+  useEffect(() => {
+    scroll.toBottom(false);
+  }, [scroll, finalString]);
 
   useEffect(() => {
     const timeout = setTimeout(
       () =>
         setWelcomeText(
-          `Heya! I'm FleetGPT, Stanford's all-original, all-comedy a cappella bot! The Fleet Street computer whizzes cooked me up during a three-week-long, shower-free, anti-social coding marathon. Shampoo? Nah, who needs it when you've got me?
-          As you can imagine, I churn out skits that'll have you in stitches – way beyond your average Fleet Street fare. I mean, seriously. Even my most cringe-worthy creations outshine half of what the group dreams up (cough, Bitsmas, cough).
-          So, do you have any ideas for a skit? Maybe ask your lovely audience? :-)`
+          `Hey, y'all! I'm FleetGPT, Fleet Street's latest innovation!
+          The rules are simple: to write a skit, you'll need a person, place, and thing. Let's go!
+          First, let's ask the audience. Give us a person!`
         ),
       1250
     );
@@ -41,56 +70,99 @@ export default function Chat() {
     };
   }, []);
 
-  const audiencePromptLines = useMemo(
+  // const audiencePromptLines = useMemo(
+  //   () =>
+  //     audiencePrompt
+  //       .split("\n\n")
+  //       .map((item) => item.split("\n"))
+  //       .flat(),
+  //   [audiencePrompt]
+  // );
+
+  const chatLines = useMemo(
     () =>
-      audiencePrompt
-        .split("\n\n")
-        .map((item) => item.split("\n"))
-        .flat(),
-    [audiencePrompt]
+      finalString
+        .split("\n")
+        .map((token) => (token === "" ? <>&nbsp;</> : token)),
+    [finalString]
   );
 
   return (
     <>
-      {!isShowingVideo && scriptIsReady ? (
+      {!isShowingChatMessages && scriptIsReady ? (
         <ScriptReady />
       ) : (
         <Box>
+          {/* Welcome */}
           <ChatRow>
             <TypewriterText text={welcomeText} />
           </ChatRow>
-          <ChatRow isHuman isHidden={!audiencePrompt}>
-            {audiencePromptLines.map((line, index) => (
-              <Text key={index + "_" + line}>
-                {line}
-                {!isGenerating && index + 1 === audiencePromptLines.length && (
-                  <Cursor opacity={1} cursor="|" blinkStyle="normal" />
-                )}
-              </Text>
-            ))}
-          </ChatRow>
-          {isGenerating && (
-            <StallingChatRow setIsShowingVideo={setIsShowingVideo} />
+          {/* Person response */}
+          <ChatResponse text={promptPerson} />
+          {/* Place prompt */}
+          {shouldShowPromptPlace && (
+            <ChatRow>
+              <TypewriterText text={"Now, how about a place?"} />
+            </ChatRow>
+          )}
+          {/* Place response */}
+          <ChatResponse text={promptPlace} />
+          {/* Thing prompt */}
+          {shouldShowPromptThing && (
+            <ChatRow>
+              <TypewriterText text={"Last one. Give us a thing!"} />
+            </ChatRow>
+          )}
+          {/* Thing response */}
+          <ChatResponse text={promptThing} />
+          {isGenerating && !isShowingChatMessages && (
+            <StallingChatRow
+              setIsShowingChatMessages={setIsShowingChatMessages}
+            />
           )}
         </Box>
       )}
-      {isShowingVideo && (
-        <YTOverlay
-          url="https://www.youtube.com/watch?v=rN--BCpU-78" /* the group is too big. */
-          // url="https://www.youtube.com/watch?v=34ZMVARbuU4" /* dorm alone 2 trailer */
-          // url="https://www.youtube.com/watch?v=Vj4Y1c-DSM0" /* 15 sec video filler */
-          onEnded={() => setIsShowingVideo(false)}
-        />
+      {isShowingChatMessages && (
+        <ChatRow>
+          {chatLines.map((line, index) => (
+            <Text
+              key={index + "_" + line.toString()}
+              style={{
+                fontSize: typeof line === "string" ? undefined : "0.6em",
+              }}
+            >
+              {line}
+              {index + 1 === chatLines.length && typeof line === "string" && (
+                <Cursor />
+              )}
+            </Text>
+          ))}
+        </ChatRow>
       )}
     </>
   );
 }
 
+function ChatResponse({ text }: { text: string }) {
+  return (
+    <ChatRow isHuman isHidden={!text}>
+      <Text>
+        {text.split("\n")[0]}
+        {text.split("\n").length <= 1 && (
+          <Cursor opacity={1} cursor="|" blinkStyle="normal" />
+        )}
+      </Text>
+    </ChatRow>
+  );
+}
+
 function StallingChatRow({
-  setIsShowingVideo,
+  setIsShowingChatMessages,
 }: {
-  setIsShowingVideo: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsShowingChatMessages: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { setIsRunningQueue } = useSocket();
+
   const [stallingTextIndex, setStallingTextIndex] = useState(0);
 
   const { playSound, speakText } = useSfx();
@@ -113,11 +185,19 @@ function StallingChatRow({
 
   useEffect(() => {
     playSound(Sound.BEEP);
-    setIsShowingVideo(stallingTextIndex === -1);
-  }, [playSound, setIsShowingVideo, stallingTextIndex]);
+    if (stallingTextIndex === -1) {
+      setIsShowingChatMessages(true);
+      setIsRunningQueue(true);
+    }
+  }, [
+    playSound,
+    setIsShowingChatMessages,
+    stallingTextIndex,
+    setIsRunningQueue,
+  ]);
 
   return (
-    <ChatRow>
+    <ChatRow isPulsing>
       <Flex fontStyle="italic" alignItems="center">
         <Spinner size="xl" thickness="5px" mr="4" display="inline-block" />
         <Text flex="1">
@@ -134,7 +214,12 @@ function ChatRow({
   children,
   isHuman,
   isHidden,
-}: React.PropsWithChildren<{ isHuman?: boolean; isHidden?: boolean }>) {
+  isPulsing,
+}: React.PropsWithChildren<{
+  isHuman?: boolean;
+  isHidden?: boolean;
+  isPulsing?: boolean;
+}>) {
   return (
     <Flex
       background={isHuman ? undefined : "whiteAlpha.300"}
@@ -146,6 +231,7 @@ function ChatRow({
     >
       <Box mt="2" mb="3">
         <Avatar
+          className={isPulsing ? styles.pulsingAvatar : undefined}
           size="2xl"
           src={
             process.env.PUBLIC_URL +

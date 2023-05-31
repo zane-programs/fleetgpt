@@ -11,17 +11,18 @@ import { MdVolumeOff, MdVolumeUp } from "react-icons/md";
 import { useApp } from "../App";
 import { useLocalStorage } from "../utils/storage";
 import { useCallback, useEffect } from "react";
-import { generateScript } from "../utils/api";
+import { generateScriptPPT } from "../utils/api";
 import { usePointer } from "../components/PointerProvider";
 
 export default function Admin() {
   const { sfx, overlay } = useApp();
   const { setRoute } = useRouter();
   const { setEnabled: setPointerEnabled } = usePointer();
-  const [audiencePrompt, setAudiencePrompt] = useLocalStorage(
-    "audiencePrompt",
-    ""
-  );
+
+  const [promptPerson, setPromptPerson] = useLocalStorage("promptPerson", "");
+  const [promptPlace, setPromptPlace] = useLocalStorage("promptPlace", "");
+  const [promptThing, setPromptThing] = useLocalStorage("promptThing", "");
+
   const [isGenerating, setIsGenerating] = useLocalStorage(
     "isGenerating",
     false
@@ -33,9 +34,15 @@ export default function Admin() {
 
   const handleGenerate = useCallback(async () => {
     setIsGenerating(true);
-    await generateScript(audiencePrompt);
+    await generateScriptPPT(promptPerson, promptPlace, promptThing);
     setScriptIsReady(true);
-  }, [audiencePrompt, setIsGenerating, setScriptIsReady]);
+  }, [
+    promptPerson,
+    promptPlace,
+    promptThing,
+    setIsGenerating,
+    setScriptIsReady,
+  ]);
 
   useEffect(() => {
     setPointerEnabled(false);
@@ -49,13 +56,23 @@ export default function Admin() {
       <Heading size="xl" mb="4">
         Admin
       </Heading>
-      <Textarea
-        value={audiencePrompt}
-        onChange={(e) => setAudiencePrompt(e.target.value)}
-        size="md"
-        placeholder="Audience Prompt"
-        mb="4"
+
+      <ControlledTextField
+        value={promptPerson}
+        setValue={setPromptPerson}
+        placeholder="Person"
       />
+      <ControlledTextField
+        value={promptPlace}
+        setValue={setPromptPlace}
+        placeholder="Place"
+      />
+      <ControlledTextField
+        value={promptThing}
+        setValue={setPromptThing}
+        placeholder="Thing"
+      />
+
       <ButtonGroup gap={2} mb="6" display="block">
         <Button
           onClick={handleGenerate}
@@ -83,6 +100,26 @@ export default function Admin() {
         <Button onClick={() => setRoute(Route.HOME)}>Exit</Button>
       </ButtonGroup>
     </Box>
+  );
+}
+
+function ControlledTextField({
+  value,
+  setValue,
+  placeholder,
+}: {
+  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+  placeholder?: string;
+}) {
+  return (
+    <Textarea
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      size="sm"
+      placeholder={placeholder}
+      mb="4"
+    />
   );
 }
 
