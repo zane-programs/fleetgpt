@@ -106,7 +106,7 @@ export function SocketProvider({ children }: React.PropsWithChildren<{}>) {
       if (isRunningQueue && tokenQueue.current.length > 0) {
         setFinalString((previous) => previous + tokenQueue.current.shift());
       }
-    }, 210);
+    }, 195);
 
     return () => {
       clearInterval(queueHandlingInterval);

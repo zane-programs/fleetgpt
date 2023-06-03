@@ -13,13 +13,6 @@
       localStorage.setItem("promptThing", '""');
       localStorage.setItem("isGenerating", "false");
       localStorage.setItem("scriptIsReady", "false");
-
-      window.SPEECH_SYNTHESIS_VOICES = [];
-      window.addEventListener("click", function () {
-        if ("speechSynthesis" in window) {
-          window.SPEECH_SYNTHESIS_VOICES = window.speechSynthesis.getVoices();
-        }
-      });
     </script>
     <style>
       body::-webkit-scrollbar {
