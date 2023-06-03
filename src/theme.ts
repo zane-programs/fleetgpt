@@ -3,8 +3,8 @@ import { extendTheme } from "@chakra-ui/theme-utils";
 const theme = extendTheme({
   config: { initialColorMode: "dark", useSystemColorMode: false },
   fonts: {
-    heading: `'ChatGPTFont', serif`,
-    body: `'ChatGPTFont', serif`,
+    heading: `'ChatGPTFont', sans-serif`,
+    body: `'ChatGPTFont', sans-serif`,
   },
   components: {
     Heading: {
